@@ -350,8 +350,87 @@ plot(xindex,dimensionTestError);
 figure(6);
 plot(xindex,errorVariance_t);
 
+%% explore the relationship bewteen the class separability and errorprobability
+
+us1_1 = [0,0];
+us1_2 = [0.2,0.2];
+
+us2_1 = [0,0];
+us2_2 = [0.4,0.4];
+
+us3_1 = [0,0];
+us3_2 = [0.8,0.8];
+
+us4_1 = [0,0];
+us4_2 = [1.4,1.4];
+
+us5_1 = [0,0];
+us5_2 = [2.2,2.2];
+
+us6_1 = [0,0];
+us6_2 = [3,3];
+
+sigma = eye(2);
+%generate design set Xd and test set Xt
+[xd1_s1,xd1_s2] = twoGaussianSetGenerating(us1_1,us1_2,sigma,150,150);
+[xd2_s1,xd2_s2] = twoGaussianSetGenerating(us2_1,us2_2,sigma,150,150);
+[xd3_s1,xd3_s2] = twoGaussianSetGenerating(us3_1,us3_2,sigma,150,150);
+[xd4_s1,xd4_s2] = twoGaussianSetGenerating(us4_1,us4_2,sigma,150,150);
+[xd5_s1,xd5_s2] = twoGaussianSetGenerating(us5_1,us5_2,sigma,150,150);
+[xd6_s1,xd6_s2] = twoGaussianSetGenerating(us6_1,us6_2,sigma,150,150);
+
+xd_s1=[xd1_s1';xd2_s1';xd3_s1';xd4_s1';xd5_s1';xd6_s1'];
+xd_s2=[xd1_s2';xd2_s2';xd3_s2';xd4_s2';xd5_s2';xd6_s2'];
+
+[xt1_s1,xt1_s2] = twoGaussianSetGenerating(us1_1,us1_2,sigma,150,150);
+[xt2_s1,xt2_s2] = twoGaussianSetGenerating(us2_1,us2_2,sigma,150,150);
+[xt3_s1,xt3_s2] = twoGaussianSetGenerating(us3_1,us3_2,sigma,150,150);
+[xt4_s1,xt4_s2] = twoGaussianSetGenerating(us4_1,us4_2,sigma,150,150);
+[xt5_s1,xt5_s2] = twoGaussianSetGenerating(us5_1,us5_2,sigma,150,150);
+[xt6_s1,xt6_s2] = twoGaussianSetGenerating(us6_1,us6_2,sigma,150,150);
+
+xt_s1=[xt1_s1,xt2_s1,xt3_s1,xt4_s1,xt5_s1,xt6_s1];
+xt_s2=[xt1_s2,xt2_s2,xt3_s2,xt4_s2,xt5_s2,xt6_s2];
+xts1=[xt1_s1;xt1_s2];
+xts2=[xt2_s1;xt2_s2];
+xts3=[xt3_s1;xt3_s2];
+xts4=[xt4_s1;xt4_s2];
+xts5=[xt5_s1;xt5_s2];
+xts6=[xt6_s1;xt6_s2];
+
+xt = [xts1;xts2;xts3;xts4;xts5;xts6];
+
+%traning samples from the design set
+Nd_s = 100;
+averageEstematorError = [0,0,0,0,0,0];
+averageTestError = [0,0,0,0,0,0];
+lable1_test = repmat(1,1,150);
+lable2_test = repmat(2,1,150);
+lable_test = [lable1_test,lable2_test];
+
+for n = 1:6
+   for v = 1:10
+        [trainsamples,labels] = traningSamples(2,xd_s1(n,:)',xd_s2(n,:)',150,Nd_s);
+        Md_s = fitcnb(trainsamples,labels,...
+            'ClassNames',{'1','2'});
+        estimatorError = resubLoss(Md_s,'LossFun','ClassifErr');
+     	averageEstematorError(n) = averageEstematorError(n) + estimatorError;
+        
+        testError = loss(Md_s,xt(n,:),lable_test);
+        averageTestError(n) = averageTestError(n) + testError;
+   end
+   averageEstematorError(n) = averageEstematorError(n)/10;
+   averageTestError(n) = averageTestError(n)/10;
+end
+figure(7);
+plot(Nd,averageEstematorError);
+figure(8);
+plot(Nd,averageTestError);
 
 
+
+%% investigate the effect on the classifier error probability of discrepancies between the true and assumed class
+% probability distribution models
 
 
 
